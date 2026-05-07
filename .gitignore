@@ -1,8 +1,7 @@
 .idea
-./__pycache__/
-*/__pycache__/
-*/*/__pycache__/
-*/*/*/__pycache__/
+__pycache__/
+.pytest_cache/
+.venv
 .DS_Store
 init_model/
 *.tar.gz
@@ -27,3 +26,5 @@ emotion2vec*
 GPT-SoVITS*
 modelscope_models
 examples/aishell/llm_asr_nar/*
+*.log
+*.pid
