@@ -34,7 +34,7 @@ class Language(str, Enum):
     nospeech = "nospeech"
 
 
-model_dir = "iic/SenseVoiceSmall"
+model_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".modelsmall")
 
 # Disable cudnn benchmark for deterministic memory usage
 torch.backends.cudnn.benchmark = False

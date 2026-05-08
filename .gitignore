@@ -2,6 +2,7 @@
 __pycache__/
 .pytest_cache/
 .venv
+.modelsmall
 .DS_Store
 init_model/
 *.tar.gz
