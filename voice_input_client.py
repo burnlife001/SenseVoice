@@ -1,11 +1,20 @@
 """SenseVoice 全局语音输入客户端"""
 import os
+import sys
 import json
 import threading
 import time
 import io
 import tempfile
 from typing import Optional, Callable
+
+# Fix Windows GBK console encoding for emoji/unicode output
+if sys.platform == "win32":
+    import codecs
+    if sys.stdout.encoding.lower() in ("gbk", "cp936", "cp1252"):
+        sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
+    if sys.stderr.encoding.lower() in ("gbk", "cp936", "cp1252"):
+        sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer)
 
 import numpy as np
 import sounddevice as sd
