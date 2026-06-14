@@ -42,6 +42,14 @@ get_pid() {
     fi
 }
 
+# --- 辅助：检测是否有其他实例在运行 ---
+find_existing() {
+    # 通过命令行匹配查找运行中的 Python 脚本进程（跨脚本/手动启动的统一检测）
+    local script_name="$1"
+    # tasklist /v 在 git-bash 下输出兼容，用 wmic 或 ps 更可靠
+    ps -W 2>/dev/null | grep -i "python.*${script_name}" | grep -v grep | awk '{print $1}'
+}
+
 # --- 1. 启动服务 ---
 start_server() {
     check_venv
@@ -50,6 +58,14 @@ start_server() {
     if [ -n "$pid" ]; then
         yellow "Server already running (PID: $pid, port: $PORT)"
         return
+    fi
+
+    # 额外检查：是否有未通过 PID 文件跟踪的实例
+    local existing=$(find_existing "run_server")
+    if [ -n "$existing" ]; then
+        yellow "Server already running (untracked PID: $existing), cleaning up..."
+        kill $existing 2>/dev/null
+        sleep 1
     fi
 
     echo -n "Starting SenseVoice API server (GPU)... "
@@ -86,6 +102,14 @@ start_client() {
     if [ -n "$pid" ]; then
         yellow "Client already running (PID: $pid)"
         return
+    fi
+
+    # 额外检查：是否有未通过 PID 文件跟踪的实例
+    local existing=$(find_existing "voice_input_client")
+    if [ -n "$existing" ]; then
+        yellow "Client already running (untracked PID: $existing), cleaning up..."
+        kill $existing 2>/dev/null
+        sleep 0.5
     fi
 
     echo -n "Starting voice input client... "
