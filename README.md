@@ -44,6 +44,7 @@ Online Demo:
 
 <a name="What's News"></a>
 # What's New 🔥
+- 2026/05: SenseVoice now supports speaker diarization. Use with `vad_model` + `spk_model` + `punc_model` to get per-sentence speaker labels. Requires installing FunASR from source: `pip install git+https://github.com/modelscope/FunASR.git`
 - 2024/11: Add support for timestamp based on the CTC alignment.
 - 2024/7: Added Export Features for [ONNX](./demo_onnx.py) and [libtorch](./demo_libtorch.py), as well as Python Version Runtimes: [funasr-onnx-0.4.0](https://pypi.org/project/funasr-onnx/), [funasr-torch-0.1.1](https://pypi.org/project/funasr-torch/)
 - 2024/7: The [SenseVoice-Small](https://www.modelscope.cn/models/iic/SenseVoiceSmall) voice understanding model is open-sourced, which offers high-precision multilingual speech recognition, emotion recognition, and audio event detection capabilities for Mandarin, Cantonese, English, Japanese, and Korean and leads to exceptionally low inference latency.  
@@ -147,6 +148,41 @@ print(text)
 - `merge_vad`: Whether to merge short audio fragments segmented by the VAD model, with the merged length being `merge_length_s`, in seconds (s).
 - `ban_emo_unk`: Whether to ban the output of the `emo_unk` token.
 </details>
+
+### Speaker Diarization
+
+SenseVoice supports speaker diarization when used with VAD + CAM++ speaker model + punctuation model:
+
+```python
+from funasr import AutoModel
+from funasr.utils.postprocess_utils import rich_transcription_postprocess
+
+model = AutoModel(
+    model="iic/SenseVoiceSmall",
+    trust_remote_code=True,
+    remote_code="./model.py",
+    vad_model="fsmn-vad",
+    vad_kwargs={"max_single_segment_time": 30000},
+    spk_model="cam++",
+    punc_model="ct-punc",
+    device="cuda:0",
+)
+res = model.generate(
+    input="example.wav",
+    cache={},
+    language="auto",
+    use_itn=True,
+    batch_size_s=60,
+    merge_vad=True,
+    merge_length_s=15,
+)
+# Per-sentence results with speaker labels
+for sent in res[0]["sentence_info"]:
+    text = rich_transcription_postprocess(sent["text"])
+    print(f"Speaker {sent['spk']}: [{sent['start']}ms - {sent['end']}ms] {text}")
+```
+
+> Note: Requires installing FunASR from source: `pip install git+https://github.com/modelscope/FunASR.git`
 
 If all inputs are short audios (<30s), and batch inference is needed to speed up inference efficiency, the VAD model can be removed, and `batch_size` can be set accordingly.
 ```python
@@ -392,6 +428,17 @@ python webui.py
 - [streaming-sensevoice](https://github.com/pengzhendong/streaming-sensevoice) processes inference in chunks. To achieve pseudo-streaming, it employs a truncated attention mechanism, sacrificing some accuracy. Additionally, this technology supports CTC prefix beam search and hot-word boosting features.
 - [OmniSenseVoice](https://github.com/lifeiteng/OmniSenseVoice) is optimized for lightning-fast inference and batching process. 
 - [SenseVoice Hotword](https://www.modelscope.cn/models/dengcunqin/SenseVoiceSmall_hotword)，Neural Network Hotword Enhancement，[Contextualized End-to-End Speech Recognition with Contextual Phrase Prediction Network](https://mp.weixin.qq.com/s/1QkIvh8j7rrUjRyWOgAvdA)。
+## Ecosystem
+
+SenseVoice is part of the **FunAudioLLM** family:
+
+| Project | Description | Stars |
+|---------|-------------|-------|
+| [FunASR](https://github.com/modelscope/FunASR) | Industrial speech recognition toolkit — VAD, ASR, punctuation, diarization | [![](https://img.shields.io/github/stars/modelscope/FunASR?style=social)](https://github.com/modelscope/FunASR) |
+| [Fun-ASR-Nano](https://github.com/FunAudioLLM/Fun-ASR) | End-to-end LLM-based ASR — 31 languages, streaming, hotwords | [![](https://img.shields.io/github/stars/FunAudioLLM/Fun-ASR?style=social)](https://github.com/FunAudioLLM/Fun-ASR) |
+| [CosyVoice](https://github.com/FunAudioLLM/CosyVoice) | Natural speech generation — multi-language, zero-shot cloning | [![](https://img.shields.io/github/stars/FunAudioLLM/CosyVoice?style=social)](https://github.com/FunAudioLLM/CosyVoice) |
+| [FunClip](https://github.com/modelscope/FunClip) | AI-powered video clipping with speech recognition | [![](https://img.shields.io/github/stars/modelscope/FunClip?style=social)](https://github.com/modelscope/FunClip) |
+
 <a name="Community"></a>
 # Community
 If you encounter problems in use, you can directly raise Issues on the github page.
@@ -401,5 +448,13 @@ You can also scan the following DingTalk group QR code to join the community gro
 |                          FunASR                          |
 |:--------------------------------------------------------:|
 | <img src="image/dingding_funasr.png" width="250"/></div> |
+
+<a href="https://star-history.com/#FunAudioLLM/SenseVoice&modelscope/FunASR&FunAudioLLM/Fun-ASR&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=FunAudioLLM/SenseVoice,modelscope/FunASR,FunAudioLLM/Fun-ASR&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=FunAudioLLM/SenseVoice,modelscope/FunASR,FunAudioLLM/Fun-ASR&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=FunAudioLLM/SenseVoice,modelscope/FunASR,FunAudioLLM/Fun-ASR&type=Date" />
+  </picture>
+</a>
 
 
